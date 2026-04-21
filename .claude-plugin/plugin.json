@@ -1,0 +1,17 @@
+{
+  "name": "dk-be-bundle",
+  "version": "0.1.0",
+  "description": "Backend skill bundle for Spring Boot 3 + Java 21 + Hexagonal Architecture. Includes assess/add pipeline, ES indexing, and test scaffolding orchestrated by be-planner.",
+  "author": {
+    "name": "dankim0124",
+    "email": "dankim0124@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "backend",
+    "spring-boot",
+    "hexagonal-architecture",
+    "jdbc",
+    "elasticsearch"
+  ]
+}

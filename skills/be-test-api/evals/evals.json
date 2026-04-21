@@ -1,0 +1,52 @@
+{
+  "skill_name": "be-test-api",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "NotificationApiController",
+      "expected_output": "NotificationApiControllerTest.java — 6 endpoints × 정상/예외 TC, Mockito 단위 테스트, 전체 PASS",
+      "assertions": [
+        {
+          "name": "컴파일 성공",
+          "check": "테스트 파일이 컴파일 에러 없이 빌드되는가"
+        },
+        {
+          "name": "전체 테스트 PASS",
+          "check": "모든 테스트 케이스가 GREEN인가"
+        },
+        {
+          "name": "Phase 2 산출물 제시",
+          "check": "Phase 2에서 Mock 의존성 + 엔드포인트별 TC 표를 유저에게 보여주고 확인을 받았는가"
+        },
+        {
+          "name": "정상 경로 커버리지",
+          "check": "모든 엔드포인트(6개)에 정상 경로 TC가 있는가"
+        },
+        {
+          "name": "예외 경로 커버리지",
+          "check": "Writer에서 throw하는 NotificationNotFoundException에 대한 예외 TC가 있는가"
+        },
+        {
+          "name": "예외 검증 패턴 준수",
+          "check": "예외 TC에서 assertThatThrownBy + satisfies로 httpStatusCode + httpErrorMessage를 검증하는가"
+        },
+        {
+          "name": "분기 TC 존재",
+          "check": "Controller 내부 분기(hasMore 등)에 대한 별도 TC가 있는가"
+        },
+        {
+          "name": "Spring 컨텍스트 미사용",
+          "check": "@ExtendWith(MockitoExtension.class)만 사용하고 @WebMvcTest 등이 없는가"
+        },
+        {
+          "name": "네이밍 컨벤션",
+          "check": "should_예상결과_when_조건 패턴을 따르는가"
+        },
+        {
+          "name": "given-when-then 구조",
+          "check": "각 테스트에 // given, // when, // then 구분이 있는가"
+        }
+      ]
+    }
+  ]
+}
