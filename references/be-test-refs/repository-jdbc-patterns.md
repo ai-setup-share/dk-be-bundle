@@ -2,6 +2,12 @@
 
 카테고리별 테스트 작성 패턴. `be-test-repository-jdbc` 스킬의 Phase 3에서 참조한다.
 
+> **이 문서의 성격 (공통)**
+>
+> - 기존 서비스 패턴에서 도출된 **참고용** 자료다. 절대 규칙이 아니라 결과물의 경향을 맞추기 위한 가이드.
+> - 요구사항이 이 패턴들로 해결되지 않으면, 주변 컨텍스트(폴더/파일/연관 모듈)를 **한 번 더 탐색·검토** 후 필요한 변형을 적용한다.
+> - 여러 레퍼런스로 해결 가능하면 **가장 간단한 방식**을 택한다.
+
 ---
 
 ## A. Entity↔Domain 변환
@@ -317,7 +323,7 @@ void should_returnEmpty_when_nonExistingId() {
 
 ## I. 삭제
 
-현재 프로젝트는 BaseEntity 기반 soft delete.
+모든 Entity 가 `isDeleted`/`deletedAt` 필드를 가지므로 정석 soft-delete 를 쓰는 도메인에서는 아래 패턴을 따른다 (hide/show 류·upsert-only 류는 해당 없음).
 
 ```java
 @Test

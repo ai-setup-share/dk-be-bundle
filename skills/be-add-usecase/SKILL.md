@@ -15,16 +15,31 @@ usecase 모듈에 Reader/Writer 또는 Usecase를 생성/변경한다.
 - Usecase 생성은 유저에게 허락을 받고 진행한다.
 
 ### 참고 문서 (읽어올 것)
-- specs/usecase.md — 기존 Reader/Writer 정보 (프로젝트 루트 기준)
+- `${CLAUDE_PLUGIN_ROOT}/references/be-refs/service-references.md` — 5 패턴 (Foo/Bar/Baz/Qux/Quux) + 공통 요소 + 선택 가이드
+- specs/usecase.md — 기존 Reader/Writer 정보 (프로젝트 루트 기준, 없으면 소스에서 직접 추론)
 - specs/infrastructure.md — 의존할 Repository 인터페이스 (프로젝트 루트 기준)
 - specs/models.md — 도메인 모델 (반환 타입, Command 필드 참조) (프로젝트 루트 기준)
+
+## 패턴 선택 (먼저 결정)
+
+service-references.md §"패턴 선택 가이드" 를 적용해 도메인 특성에 맞는 패턴을 먼저 고른다:
+
+| 도메인 특성 | Pattern |
+|---|---|
+| 조회만 (정적 / reference 데이터) | **Foo** — Reader 단독 |
+| 기본 CRUD | **Bar** — Reader + Writer 쌍 |
+| API 단위 여러 도메인 + 부수효과 | **Baz** — Usecase (Bar 위에) |
+| 집계/대시보드, 중간 Reader 불필요 | **Qux** — Usecase 단독 |
+| 고빈도 이벤트 집계 (특수) | **Quux** — ViewMemory |
+
+대부분 **Bar + Baz** 조합.
 
 ## 생성 결과물 구조
 
 ### 기본 (Reader/Writer)
 
 ```
-service/src/main/java/dev/{project}/service/{domain}/
+service/src/main/java/{packagePath}/service/{domain}/
 ├── {Domain}Reader.java          ← 조회 인터페이스
 ├── {Domain}Writer.java          ← 명령 인터페이스
 ├── impl/
@@ -37,7 +52,7 @@ service/src/main/java/dev/{project}/service/{domain}/
 ### Usecase (단순 Reader/Writer를 벗어나는 동작)
 
 ```
-service/src/main/java/dev/{project}/service/{usecase}/
+service/src/main/java/{packagePath}/service/{usecase}/
 └── {domainOrActionName}/
     ├── {Name}Usecase.java
     └── dto/

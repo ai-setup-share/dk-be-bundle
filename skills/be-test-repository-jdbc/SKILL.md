@@ -48,11 +48,15 @@ repository-jdbc 모듈의 통합 테스트를 3단계로 수행한다.
 package {packageRoot}.jdbc;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jdbc.repository.config.EnableJdbcAuditing;
 
 @SpringBootApplication
+@EnableJdbcAuditing
 public class TestApplication {
 }
 ```
+
+> `@EnableJdbcAuditing` 필수 — 없으면 `@CreatedDate`/`@LastModifiedDate` 필드가 런타임에 null 로 남는 조용한 버그.
 
 **application.yml** (누락 시):
 ```yaml
@@ -248,10 +252,10 @@ class {Domain}JdbcRepositoryTest {
    - 빈 필터, 단일 필터, 복합 필터 각각 테스트
    - 정렬 옵션별 테스트
 
-6. **soft delete 고려**:
-   - 현재 프로젝트는 BaseEntity 기반 soft delete 사용
-   - deleteById 후 findById가 empty를 반환하는지 확인
-   - isDeleted=true인 데이터가 조회에서 제외되는지 확인
+6. **soft delete 고려** (모든 Entity 가 isDeleted/deletedAt 필드 보유 전제):
+   - 정석 soft-delete 를 쓰는 도메인은 `deleteById` 후 `findById` 가 empty 반환하는지 확인
+   - isDeleted=true 인 데이터가 조회에서 제외되는지 확인
+   - hide/show 류(Comment)나 upsert-only(Rating) 도메인은 해당 항목 생략
 
 ### 작성 후 검증
 

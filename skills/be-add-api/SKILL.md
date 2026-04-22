@@ -14,9 +14,21 @@ api 모듈에 Controller와 Request/Response DTO를 생성/변경한다.
 - 개별 API 추가 요청에도 아래의 공통 규칙을 따르시오.
 
 ### 참고 문서 (읽어올 것)
-- specs/api.md — 기존 API 엔드포인트 정보 (프로젝트 루트 기준)
+- `${CLAUDE_PLUGIN_ROOT}/references/be-refs/api-references.md` — 4 패턴 (Foo/Bar/Baz/Qux) + 공통 요소 (Request/Response DTO, 인증, 로깅, enum 파싱)
+- specs/api.md — 기존 API 엔드포인트 정보 (프로젝트 루트 기준, 없으면 소스에서 추론)
 - specs/usecase.md — 호출 대상 인터페이스 시그니처 + DTO 스펙 (프로젝트 루트 기준)
 - specs/models.md — 도메인 모델 (Response 필드 참조) (프로젝트 루트 기준)
+
+## 패턴 선택 (먼저 결정)
+
+api-references.md §"패턴 선택 가이드" 로 엔드포인트 특성에 맞는 패턴을 먼저 고른다:
+
+| 엔드포인트 특성 | Pattern |
+|---|---|
+| 리소스 명사형, 인증, 전체 CRUD | **Foo** (주력) |
+| 동작형 리소스 (bookmark/rating) | **Bar** |
+| 공개 조회 전용 | **Baz** |
+| 여러 도메인 집계 (마이페이지/대시보드) | **Qux** |
 
 ## 작업 순서
 
@@ -32,7 +44,7 @@ api 모듈에 Controller와 Request/Response DTO를 생성/변경한다.
 ### 기본
 
 ```
-api/src/main/java/dev/{project}/api/{domain}/
+api/src/main/java/{packagePath}/api/{domain}/
 ├── {Domain}ApiController.java
 └── dto/
     ├── {Domain}Request.java
@@ -42,7 +54,7 @@ api/src/main/java/dev/{project}/api/{domain}/
 ### 복수 DTO
 
 ```
-api/src/main/java/dev/{project}/api/{domain}/
+api/src/main/java/{packagePath}/api/{domain}/
 ├── {Domain}ApiController.java
 └── dto/
     ├── {Domain}Request.java

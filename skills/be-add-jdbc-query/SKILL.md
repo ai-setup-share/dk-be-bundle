@@ -23,7 +23,7 @@ infra 인터페이스의 구현체와 쿼리를 생성/변경한다.
 ## 생성 결과물 구조
 
 ```
-repository-jdbc/src/main/java/dev/{project}/jdbc/{domain}/repository/
+repository-jdbc/src/main/java/{packagePath}/jdbc/{domain}/repository/
 ├── {Domain}EntityRepository.java  ← Spring Data JDBC (CrudRepository)
 ├── {Domain}JdbcRepository.java    ← infra 구현체 (Adapter)
 └── {Domain}WithUserDto.java       ← JOIN 결과 DTO (필요 시)
