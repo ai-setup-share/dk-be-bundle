@@ -22,7 +22,7 @@ flowchart LR
     H -->|"Phase 3"| ADD["add-infra → add-api<br/>바텀업으로 구현 시작"]
 ```
 
-각 레이어(api / usecase / infrastructure / model)를 개별 스킬이 담당하고, `be-planner`가 평가→계획→구현을 오케스트레이션합니다.
+각 레이어를 **탑다운**으로 평가하며, 기존 리소스와 인터페이스를 최대한 재사용하는 방향으로 계획을 수립합니다. 평가 이후 유저의 **HITL 검수**를 거쳐, **바텀업**으로 작업을 실행합니다.
 
 ## planner 예시
 
