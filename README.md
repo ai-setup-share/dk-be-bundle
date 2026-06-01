@@ -1,19 +1,36 @@
-# dk-be-bundle — Spring Boot Hexagonal BE Skill Bundle
+# dk-be-bundle: Spring Boot 멀티모듈 작업 플러그인
 
-20개 스킬로 **API 1개 단위 종단 생성** 파이프라인을 오케스트레이션하는 Claude Code 플러그인.
-Spring Boot 3 + Java 21 + Hexagonal + Spring Data JDBC + H2 스택 프로젝트용.
+Spring Boot 멀티모듈 백엔드 작업을 **작고 전형적인 단위로 쪼개** Claude Code 스킬로 자동화하는 플러그인.
 
-**Core idea:** API 스펙 1개 → top-down 평가(assess) → 역순 구현(add) → 테스트 생성.
-각 레이어(api / usecase / infrastructure / model) 를 개별 스킬이 담당하고 `be-planner` 가 오케스트레이션한다.
+## 설계 원칙
 
----
+1. **LLM 요청은 작고 전형적일수록** 결과가 예측 가능하고 검사가 쉽다 — 이 전제에서 출발합니다.
+2. Spring Boot 멀티모듈을 구성하는 핵심 요소를 **모듈/하위 폴더 단위**로 나누고, 각각의 **역할·형태·예시**를 정의합니다.
+   - API · 도메인 데이터 · usecase 인터페이스 · DB entity 스펙 · DB persistence 인터페이스
+3. (2)에서 정의한 작업 단위를 각각 독립된 **Skill**로 만듭니다.
+4. 이를 실제로 수행하기 위한 **`be-planner` 스킬**과 레이어별 **`assess-{module}` 스킬**을 둡니다.
+5. API 스펙·도메인 추가 같은 작업은 **작업 단위를 md로 입력**하면, 어떤 하위 스킬을 어떤 파라미터로 실행할지 **planner가 결정**합니다.
 
-## MANDATORY: 시작 전 확인
+## 동작 흐름
 
-1. **프로젝트 스캐폴드부터** — 빈 상태이면 `dk-be-bundle:be-init` 먼저 실행. 기존 프로젝트라도 이 번들의 컨벤션(AuditFields, DomainException/HttpException, local_h2/schema.sql 등) 과 맞는지 확인.
-2. **`dk-be-bundle.config.json`** 을 프로젝트 루트에 두면 자동 탐지 우선한다. 없으면 스킬이 질의.
-3. **be-planner 는 API 1개 단위** — 여러 API 를 한 번에 주지 않는다.
-4. **각 스킬은 참고용 레퍼런스를 읽는다** — `references/be-refs/*.md` 에 foo/bar/baz/qux 4~5 패턴이 정리돼 있다. 절대 규칙은 아니지만 결과물 톤을 맞추기 위한 기본값.
+```mermaid
+flowchart LR
+    IN["작업 단위 md<br/>(API 스펙 / 도메인 추가)"] --> P[be-planner]
+    P -->|"Phase 1"| A["assess-api → assess-infra<br/>탑다운으로 필요 작업 평가"]
+    A -->|"Phase 2"| PL["구현 계획<br/>specs/plans/{plan for task}.md"]
+    PL --> H{"HITL · 계획 검수"}
+    H -->|"Phase 3"| ADD["add-infra → add-api<br/>바텀업으로 구현 시작"]
+```
+
+각 레이어(api / usecase / infrastructure / model)를 개별 스킬이 담당하고, `be-planner`가 평가→계획→구현을 오케스트레이션합니다.
+
+## planner 예시
+
+기존 서비스에 **알림(Notification) API와 데이터 스펙**을 추가했을 때 `be-planner`가 생성한 HITL 검수 문서입니다.
+
+- 결과 문서: [`examples/notification-crud.md`](examples/notification-crud.md)
+
+이 문서를 검수(HITL)한 뒤, 각 모듈에 대한 구현 작업을 수행합니다.
 
 ---
 
@@ -32,7 +49,7 @@ claude plugin install /path/to/dk-be-bundle --scope project
 
 ---
 
-## 스킬 목록 (20개)
+## 스킬 목록 (16개 공개)
 
 모든 스킬은 `dk-be-bundle:` 네임스페이스 로 호출.
 
@@ -50,11 +67,7 @@ claude plugin install /path/to/dk-be-bundle --scope project
 | | `be-add-jdbc-query` | JdbcRepository + EntityRepository |
 | | `be-add-usecase` | Reader / Writer / Usecase |
 | | `be-add-api` | Controller + Request/Response DTO |
-| **Elasticsearch** | `be-add-es-core` | ES 공통 인프라 (선행 필수) |
-| | `be-add-es-field` | IndexField + QueryBuilderRegistry |
-| | `be-add-es-doc` | Document + Mapper + Indexer |
-| | `be-add-es-search` | Search 컴포넌트 + SearchResult |
-| | `be-extract-target-audiences` | 문서 target_audiences LLM 추출 |
+| **Elasticsearch** | _(향후 공개)_ | ES 인덱싱·검색 스킬 — 추후 공개 예정 |
 | **테스트** | `be-test-api` | Controller 단위 테스트 (Mockito) |
 | | `be-test-service` | Reader/Writer/Usecase 단위 테스트 (Mockito) |
 | | `be-test-repository-jdbc` | JdbcRepository 통합 테스트 (H2 mem 슬라이스) |
@@ -110,9 +123,9 @@ claude plugin install /path/to/dk-be-bundle --scope project
 
 ---
 
-## be-init — 스캐폴드
+## be-init — 처음 빈 프로젝트에서 시작하기
 
-**What it does:**
+아래의 요소가 생성됩니다.
 
 1. 8 모듈 (`api-application`, `api`, `service`, `repository-jdbc`, `infrastructure`, `model`, `schema`, `exception`) + Gradle wrapper 8.5 생성
 2. `Application.java` + `@EnableJdbcAuditing`
@@ -138,30 +151,6 @@ claude plugin install /path/to/dk-be-bundle --scope project
 - `group` — Gradle group, 예: `com.example.board`
 - `packageRoot` — Java 패키지 루트 (group 과 달라도 됨)
 - `projectRoot` — 생성 위치 절대 경로
-
----
-
-## References — Foo / Bar / Baz / Qux 패턴
-
-각 add-* 스킬은 `references/be-refs/*.md` 를 읽는다. 모든 레퍼런스는 같은 구조:
-
-- **공통 요소** — 네이밍, 어노테이션, 파일 배치
-- **Pattern Foo / Bar / Baz / Qux (/ Quux)** — 4~5 패턴을 foo/bar 추상 이름으로 제시
-- **패턴 선택 가이드** — 도메인 특성 → 어떤 패턴
-- **팁** — 위 패턴으로 안 풀리면 유저에게 질의
-- **공통 금지 사항**
-
-| 레이어 | 레퍼런스 | 패턴 |
-|---|---|---|
-| model | `be-refs/model-references.md` | Foo(단순) / Bar(R+W 분리) / Baz(JOIN+집계) / Qux(상태전이·트리) |
-| entity | `be-refs/entity-references.md` | Foo / Bar(Stats 분리) / Baz(@MappedCollection) / Qux(hide/show) |
-| schema | `be-refs/schema-references.md` | 공통 컬럼 + 타입 매핑 + Stats 예외 |
-| jdbc-query | `be-refs/query-references.md` | Foo(CRUD) / Bar(Stats UPDATE) / Baz(JOIN DTO) / Qux(@Modifying 트리) |
-| service | `be-refs/service-references.md` | Foo(Reader만) / Bar(R+W) / Baz(Usecase) / Qux(Usecase 단독) / Quux(ViewMemory) |
-| infrastructure | `be-refs/infrastructure-references.md` | Foo(단순) / Bar(R+W 분리) / Baz(Stats 분리) / Qux(트리) |
-| api | `be-refs/api-references.md` | Foo(RESTful CRUD) / Bar(Action) / Baz(공개 조회) / Qux(마이페이지) |
-
-**참고용 자료** 로서의 성격 (절대 규칙 아님). 요구사항이 이 패턴들로 해결되지 않으면, 주변 컨텍스트를 한 번 더 탐색 후 필요한 변형을 적용한다. 여러 레퍼런스로 해결 가능하면 가장 간단한 방식을 택한다.
 
 ---
 
@@ -194,24 +183,6 @@ claude plugin install /path/to/dk-be-bundle --scope project
 
 모든 필드 선택. 빠진 값은 자동 탐지 → 실패 시 유저에게 질의.
 해석 규칙: [`references/plugin-config-resolver.md`](references/plugin-config-resolver.md)
-
----
-
-## be-init Downstream 계약 (C-1 ~ C-9)
-
-be-init 가 고정하는 규약. 다른 스킬은 이 계약 위에서 동작한다.
-
-| # | 내용 |
-|---|---|
-| C-1 | 모듈 `include` 는 be-init 가 고정. downstream 은 `settings.gradle.kts` 를 수정하지 않는다. |
-| C-2 | 패키지 루트는 `{packageRoot}`. downstream 은 하위 세그먼트만 추가한다. |
-| C-3 | audit 필드명 `createdAt` / `updatedAt`, 타입 `Instant`. 각 엔티티가 `@CreatedDate` / `@LastModifiedDate` 로 **직접 선언**. |
-| C-4 | 엔티티는 `AuditFields` 인터페이스를 구현 (옵션이지만 권장). |
-| C-5 | 스키마 위치: `modules/schema/src/main/resources/local_h2/schema.sql` 단일. 도메인별 DDL 은 `-- === {Domain} ===` 블록으로 append. |
-| C-6 | 도메인 예외는 `DomainException` extend + `HttpException` implement. `httpStatusCode()` / `httpErrorMessage()` 노출. 404 계열은 `EntityNotFoundException` 의 하위 클래스. |
-| C-7 | `GlobalExceptionHandler` 는 be-init 소유. 추가 핸들러는 **별도 `@RestControllerAdvice`** 로 분리. |
-| C-8 | 테스트 베이스는 be-init 제공 `IntegrationTestBase` extend. 추가 Bean 은 `@ComponentScan(basePackages = {...})` 또는 `@Import` 로 로드. |
-| C-9 | 프로파일 `local`(H2 file) / `test`(H2 mem). 추가 프로파일은 별도 yml. |
 
 ---
 
