@@ -1,0 +1,15 @@
+{
+  "name": "dk-be-bundle",
+  "owner": {
+    "name": "dankim0124",
+    "email": "dankim0124@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "dk-be-bundle",
+      "description": "Backend skill bundle for Spring Boot 3 + Java 21 + Hexagonal Architecture. Includes assess/add pipeline, ES indexing, and test scaffolding orchestrated by be-planner.",
+      "category": "development",
+      "source": "./"
+    }
+  ]
+}
